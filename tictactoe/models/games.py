@@ -1,31 +1,26 @@
-from pydantic import BaseModel
-from typing import List
+from sqlalchemy import Column, Integer, String, ForeignKey
 
-from tictactoe.models.players import Player
-from tictactoe.models.movements import Movement
+from tictactoe.conf.database import Base
 
 
-class Games(BaseModel):
-    players: List[Player]
-    starting_player: Player
-    board_status: List[List[str]] = [
-        [None, None, None],
-        [None, None, None],
-        [None, None, None],
-    ]
-    next_player: str
-    winner: str = None
-    finished: bool
+class Game(Base):
+    __tablename__ = "games"
 
-    class Config:
-        orm_mode = True
+    id = Column(Integer, primary_key=True, index=True)
+    players = Column(String, nullable=False)
+    starting_player = Column(String, nullable=False)
+    next_player = Column(String, nullable=True)
+    winner = Column(String, nullable=True)
+    board_status = Column(String, nullable=True)
+    movements = Column(Integer, nullable=False, default=0)
 
 
-class GameMovement(BaseModel):
-    game_id: int
-    player: Player
-    movement: Movement
-    board_status: List[List[str]]
+class GameMovement(Base):
+    __tablename__ = "game_movements"
 
-    class Config:
-        orm_mode = True
+    id = Column(Integer, primary_key=True, index=True)
+    game_id = Column(Integer, ForeignKey("games.id"))
+    player = Column(String, nullable=False)
+    position = Column(String, nullable=False)
+    symbol = Column(String, nullable=False)
+    new_board_status = Column(String, nullable=False)
