@@ -14,6 +14,14 @@ class Game(Base):
     board_status = Column(String, nullable=True)
     movements = Column(Integer, nullable=False, default=0)
 
+    def __init__(self, data):
+        self.players = data["players"]
+        self.starting_player = data["starting_player"]
+        self.next_player = data["starting_player"]
+        self.winner = data["winner"]
+        self.board_status = data["board_status"]
+        self.movements = data["movements"]
+
 
 class GameMovement(Base):
     __tablename__ = "game_movements"

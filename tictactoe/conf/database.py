@@ -8,7 +8,9 @@ from sqlalchemy.orm import sessionmaker, Session
 from tictactoe.conf.settings import settings
 
 
-engine = create_engine(settings.DATABASE_URL, connect_args={"check_same_thread": False})
+engine = create_engine(
+    settings.DATABASE_URL, echo=True, connect_args={"check_same_thread": False}
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -21,16 +23,3 @@ def get_db() -> Generator:
         yield db
     finally:
         db.close()
-
-
-@contextmanager
-def get_db_session_context() -> Session:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-def get_db_session() -> Session:
-    return SessionLocal()
