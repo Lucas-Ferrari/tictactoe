@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from tictactoe.conf.database import get_db
 
 from tictactoe.models.games import Game
-from tictactoe.schemas.games import make_new_board, create_players
+from tictactoe.schemas.games import make_new_board, create_players, get_starting_player
 
 games_router = APIRouter()
 
@@ -38,11 +38,7 @@ def create_game(request: dict, response: Response, db: Session = Depends(get_db)
         new_game_dict["winner"] = None
         new_game_dict["movements"] = 0
         new_game_dict["board_status"] = make_new_board()
-        new_game_dict["starting_player"] = (
-            str(request["starting_player"])
-            if request["starting_player"]
-            else str(request["players"][0]["name"])
-        )
+        new_game_dict["starting_player"] = get_starting_player(request)
         new_game = Game(new_game_dict)
         db.add(new_game)
         db.commit()
