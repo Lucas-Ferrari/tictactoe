@@ -96,19 +96,19 @@ def delete_game_by_id(game_id: int, response: Response, db: Session = Depends(ge
         return {"message": "Whoops, something went wrong!"}
 
 
-@games_router.post("/{game_id}/movement", status_code=status.HTTP_201_CREATED)
-def create_movement(
-    game_id: int, request: dict, response: Response, db: Session = Depends(get_db)
-):
+@games_router.post("/movement", status_code=status.HTTP_201_CREATED)
+def create_movement(request: dict, response: Response, db: Session = Depends(get_db)):
     """
     Create a new movement for a player for a game
     request:
         {
+        "game_id": 1234,
         "player": "me",
         "position": [0, 0],
         "symbol": "X"
         }
     """
+    game_id = request["game_id"]
     assert game_id, "game_id is required"
     try:
         game = db.query(Game).filter(Game.id == game_id).first()
