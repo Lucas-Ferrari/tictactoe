@@ -32,3 +32,15 @@ class GameMovement(Base):
     position = Column(String, nullable=False)
     symbol = Column(String, nullable=False)
     new_board_status = Column(String, nullable=False)
+
+    def __init__(self, data):
+        clean_data = self._validate_data(data)
+        self.game_id = clean_data["game_id"]
+        self.player = clean_data["player"]
+        self.position = clean_data["position"]
+        self.symbol = clean_data["symbol"]
+        self.new_board_status = clean_data["new_board_status"]
+
+    def _validate_data(self, data):
+        # TODO: Validate data and formats
+        return data
