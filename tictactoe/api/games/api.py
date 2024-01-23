@@ -87,10 +87,40 @@ def delete_game_by_id(game_id: int, response: Response, db: Session = Depends(ge
         if game is not None:
             db.delete(game)
             db.commit()
-            return {"message": "Game deleted successfully."}
+            return {"message": f"Game {game_id} deleted successfully."}
         else:
             response.status_code = status.HTTP_204_NO_CONTENT
-            return {"message": "Game not found, insert a valid ID."}
+            return {"message": f"Game {game_id} not found, insert a valid ID."}
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {"message": "Whoops, something went wrong!"}
+
+
+@games_router.post("/{game_id}/movement", status_code=status.HTTP_201_CREATED)
+def create_movement(
+    game_id: int, request: dict, response: Response, db: Session = Depends(get_db)
+):
+    """
+    Create a new movement for a player for a game
+    request:
+        {
+        "player": "me",
+        "position": [0, 0],
+        "symbol": "X"
+        }
+    """
+    assert game_id, "game_id is required"
+    try:
+        game = db.query(Game).filter(Game.id == game_id).first()
+        if game is None:
+            response.status_code = status.HTTP_400_BAD_REQUEST
+            return {"message": f"Game {game_id} not found. Can't create movement."}
+        else:
+            # Serialize request data
+            # Create movement
+            # Check if it's winning movement
+            # Update game
+            return {"message": f"Movement created successfully.", "game": game}
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"message": "Whoops, something went wrong!"}
