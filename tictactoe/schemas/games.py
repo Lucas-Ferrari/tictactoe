@@ -11,7 +11,7 @@ class Game(BaseModel):
     movements: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class GameMovement(BaseModel):
@@ -23,7 +23,7 @@ class GameMovement(BaseModel):
     new_board_status: list
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 def make_new_board():
@@ -32,7 +32,8 @@ def make_new_board():
 
 def create_players(players):
     """
-    This function receives a list of players with two possible formats:
+    This function receives a list of players with two possible formats.
+    If the symbol is not provided, it will be assigned automatically.
     [ {"name": "me"}, {"name": "other"} ]
     or
     [ {"name": "me", "symbol" : "x"}, {"name": "other", "symbol": "o"} ]
@@ -54,15 +55,32 @@ def create_players(players):
 
 
 def flatten_board(board):
+    # We use this to store the board in the database as a string
     assert board is not None
 
     return ",".join(str(cell) for row in board for cell in row)
 
 
 def recover_game_board(flat_board):
+    # We use this to recover the board from the database
     assert flat_board is not None
 
     board = flat_board[2:-2].split("], [")
     board = [row.split(", ") for row in board]
     board = [[eval(cell) if cell != "None" else None for cell in row] for row in board]
     return board
+
+
+def get_starting_player(request):
+    assert request is not None
+
+    if "starting_player" in request:
+        return request["starting_player"]
+    else:
+        return request["players"][0]["name"]
+
+
+def regenerate_players(players):
+    assert players is not None
+
+    return str(players)
