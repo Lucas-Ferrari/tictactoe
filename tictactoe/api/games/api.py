@@ -46,10 +46,11 @@ def create_game(request: dict, response: Response, db: Session = Depends(get_db)
         new_game = Game(new_game_dict)
         db.add(new_game)
         db.commit()
+        return db.query(Game).filter(Game.id == new_game.id).first()
+
     except Exception as e:
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"Whoops, something went wrong!"}
-    return new_game
 
 
 @games_router.get("/", status_code=status.HTTP_200_OK)
