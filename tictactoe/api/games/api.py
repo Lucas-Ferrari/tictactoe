@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.orm import Session
 from tictactoe.conf.database import get_db
 
@@ -8,8 +8,8 @@ from tictactoe.schemas.games import make_new_board, create_players
 games_router = APIRouter()
 
 
-@games_router.post("/create")
-def create_game(request: dict, db: Session = Depends(get_db)):
+@games_router.post("/create", status_code=status.HTTP_201_CREATED)
+def create_game(request: dict, response: Response, db: Session = Depends(get_db)):
     """
     Create a new game.
     request:
@@ -43,18 +43,54 @@ def create_game(request: dict, db: Session = Depends(get_db)):
             if request["starting_player"]
             else str(request["players"][0]["name"])
         )
+        new_game = Game(new_game_dict)
+        db.add(new_game)
+        db.commit()
     except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return {"Whoops, something went wrong!"}
-    new_game = Game(new_game_dict)
-    db.add(new_game)
-    db.commit()
     return new_game
 
 
-@games_router.get("/")
-def read_item(db: Session = Depends(get_db)):
+@games_router.get("/", status_code=status.HTTP_200_OK)
+def get_all_games(db: Session = Depends(get_db)):
     """queries all games and returns them"""
     # TODO: Add pagination
     # TODO: Add filtering by status
     # TODO: Iterate data to restore game board format
     return db.query(Game).all()
+
+
+@games_router.get("/{game_id}", status_code=status.HTTP_200_OK)
+def get_game_by_id(game_id: int, response: Response, db: Session = Depends(get_db)):
+    """queries a game by id and returns it"""
+    # TODO: Format data to restore game board format and players
+    assert game_id, "game_id is required"
+    try:
+        game = db.query(Game).filter(Game.id == game_id).first()
+        if game is not None:
+            return game
+        else:
+            response.status_code = status.HTTP_204_NO_CONTENT
+            return {"message": "Game not found, insert a valid ID."}
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {"message": "Whoops, something went wrong!"}
+
+
+@games_router.delete("/{game_id}", status_code=status.HTTP_200_OK)
+def delete_game_by_id(game_id: int, response: Response, db: Session = Depends(get_db)):
+    """deletes a game by id and returns a confirmation"""
+    assert game_id, "game_id is required"
+    try:
+        game = db.query(Game).filter(Game.id == game_id).first()
+        if game is not None:
+            db.delete(game)
+            db.commit()
+            return {"message": "Game deleted successfully."}
+        else:
+            response.status_code = status.HTTP_204_NO_CONTENT
+            return {"message": "Game not found, insert a valid ID."}
+    except Exception as e:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
+        return {"message": "Whoops, something went wrong!"}
